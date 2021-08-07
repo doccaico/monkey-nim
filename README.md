@@ -9,7 +9,10 @@ I skipped ...
 
 ## Usage
 ```
-$ nim r src/monkey_nim.nim
+# Arc
+$ nim r --gc:arc src/monkey_nim.nim
+# Orc
+$ nim r --gc:orc src/monkey_nim.nim
 ```
 
 ## Test
