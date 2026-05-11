@@ -1,4 +1,5 @@
-import token
+import ./[token]
+
 
 type
   Lexer* = object

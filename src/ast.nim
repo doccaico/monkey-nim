@@ -1,6 +1,6 @@
-import ./token
+import std/[strutils]
 
-import strutils
+import ./[token]
 
 
 type

@@ -1,14 +1,7 @@
-import strutils
+import std/[strutils]
+
 
 # Go version: https://github.com/prologic/monkey-lang/blob/master/parser/parser_tracing.go
-#
-# when defined(trace): import ./parser_tracing
-# [...]
-# proc parseProgram(p: var Parser): PNode =
-#   when defined(trace): TRACE("parseProgram")
-#
-# $ nim r -d:trace src/parser.nim
-
 var traceLevel: int
 const traceIdentPlaceholder = "  "
 

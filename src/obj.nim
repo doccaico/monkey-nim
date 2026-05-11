@@ -1,6 +1,7 @@
-import ./ast
+import std/[tables, strutils]
 
-import tables, strutils
+import ./[ast]
+
 
 type
   ObjectKind* = enum

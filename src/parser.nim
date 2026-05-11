@@ -1,7 +1,8 @@
-import ./ast, ./lexer, ./token
-import strutils, tables, strformat
+import std/[strutils, tables, strformat]
 
-when defined(trace): import ./parser_tracing
+import ./[ast, lexer, token]
+when defined(trace): import ./[parser_tracing]
+
 
 var precedences = {
     tkEq:       Equals,

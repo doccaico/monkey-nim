@@ -1,6 +1,7 @@
 import ../../src/[token, lexer]
 import ./utils
 
+
 let input = """let five = 5;
 let ten = 10;
 

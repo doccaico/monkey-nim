@@ -1,6 +1,7 @@
-import ./ast, ./obj
+import std/[strutils, tables]
 
-import strutils, tables
+import ./[ast, obj]
+
 
 proc eval*(n: PNode, env: PEnvironment): PObject
 proc evalBangopExpression(right: PObject): PObject

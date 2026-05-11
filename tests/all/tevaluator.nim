@@ -1,6 +1,8 @@
-import strformat, macros
+import std/[strformat, macros]
+
 import ../../src/[ast, lexer, parser, obj, evaluator]
 from ./utils import EQ, TRUE, errInfo
+
 
 proc testEval(input: string): PObject =
   var L = initLexer(input)
