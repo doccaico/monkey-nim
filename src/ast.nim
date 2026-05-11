@@ -37,9 +37,7 @@ type
     nkNull,
 
 type
-  PNode* = ref TNode
-  # TNodeSeq = seq[PNode]
-  TNode = object
+  PNode* = ref object
     tok*: Token
     case kind*: TNodeKind
     of nkProgram:

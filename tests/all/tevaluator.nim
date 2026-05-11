@@ -2,14 +2,14 @@ import strformat, macros
 import ../../src/[ast, lexer, parser, obj, evaluator]
 from ./utils import EQ, TRUE, errInfo
 
-proc testEval(input: string): Object =
+proc testEval(input: string): PObject =
   var L = initLexer(input)
   var P = initParser(L)
   var program = P.parseProgram()
   var env = newEnvironment()
   return eval(program, env)
 
-proc testIntegerObject(o: Object, expected: int): bool =
+proc testIntegerObject(o: PObject, expected: int): bool =
   if o.kind != okInteger:
     errinfo.got = $o.kind
     errinfo.expected = $okInteger
@@ -20,7 +20,7 @@ proc testIntegerObject(o: Object, expected: int): bool =
     return false
   return true
 
-proc testBoolObject(o: Object, expected: bool): bool =
+proc testBoolObject(o: PObject, expected: bool): bool =
   if o.kind != okBool:
     errinfo.got = $o.kind
     errinfo.expected = $okBool

@@ -2,45 +2,45 @@ import ./ast, ./obj
 
 import strutils, tables
 
-proc eval*(n: PNode, env: Environment): Object
-proc evalBangopExpression(right: Object): Object
-proc evalPrefixExpression(op: string, right: Object): Object
-proc nativeBoolToBooleanObject(input: bool): Object
-proc evalMinusopExpression(right: Object): Object
-proc evalInfixExpression(op: string, left: Object, right: Object): Object
-proc evalIntegerInfixExpression(op: string, left: Object, right: Object): Object
-proc evalIfExpression(n: PNode, env: Environment): Object
-proc isTruthy(o: Object): bool
-proc evalBlockStatement(blk: seq[PNode], env: Environment): Object
-proc evalProgram(program: PNode, env: Environment): Object
-proc newError*(errMsg: string): Object
-proc isError(o: Object): bool
-proc evalIdent(n: PNode, env: Environment): Object
-proc evalExpressions(exps: seq[PNode], env: Environment): seq[Object]
-proc applyFunction(fn: Object, args: seq[Object]): Object
-proc extendFunctionEnv(fn: Object, args: seq[Object]): Environment
-proc unwrapReturnValue(obj: Object): Object
-proc evalStringInfixExpression(op: string, left: Object, right: Object): Object
+proc eval*(n: PNode, env: Environment): PObject
+proc evalBangopExpression(right: PObject): PObject
+proc evalPrefixExpression(op: string, right: PObject): PObject
+proc nativeBoolToBooleanObject(input: bool): PObject
+proc evalMinusopExpression(right: PObject): PObject
+proc evalInfixExpression(op: string, left: PObject, right: PObject): PObject
+proc evalIntegerInfixExpression(op: string, left: PObject, right: PObject): PObject
+proc evalIfExpression(n: PNode, env: Environment): PObject
+proc isTruthy(o: PObject): bool
+proc evalBlockStatement(blk: seq[PNode], env: Environment): PObject
+proc evalProgram(program: PNode, env: Environment): PObject
+proc newError*(errMsg: string): PObject
+proc isError(o: PObject): bool
+proc evalIdent(n: PNode, env: Environment): PObject
+proc evalExpressions(exps: seq[PNode], env: Environment): seq[PObject]
+proc applyFunction(fn: PObject, args: seq[PObject]): PObject
+proc extendFunctionEnv(fn: PObject, args: seq[PObject]): Environment
+proc unwrapReturnValue(obj: PObject): PObject
+proc evalStringInfixExpression(op: string, left: PObject, right: PObject): PObject
 
-proc builtinLen(args: varargs[Object]): Object
+proc builtinLen(args: varargs[PObject]): PObject
 
 let
   builtins* = {
-    "len": Object(kind: okBuiltin, builtinFn: builtinLen),
+    "len": PObject(kind: okBuiltin, builtinFn: builtinLen),
     }.toTable
-  trueObj = Object(kind: okBool, boolVal: true)
-  falseObj = Object(kind: okBool, boolVal: false)
-  nullObj* = Object(kind: okNull)
+  trueObj = PObject(kind: okBool, boolVal: true)
+  falseObj = PObject(kind: okBool, boolVal: false)
+  nullObj* = PObject(kind: okNull)
 
 
-proc eval(n: PNode, env: Environment): Object =
+proc eval(n: PNode, env: Environment): PObject =
   case n.kind
   of nkProgram:
     return evalProgram(n, env)
   of nkExpressionStatement:
     return eval(n.expression, env)
   of nkIntLit:
-    return Object(kind: okInteger, intVal: n.intVal)
+    return PObject(kind: okInteger, intVal: n.intVal)
   of nkBoolLit:
     return nativeBoolToBooleanObject(n.boolVal)
   of nkPrefixExpression:
@@ -60,7 +60,7 @@ proc eval(n: PNode, env: Environment): Object =
   of nkReturnStatement:
     let val = eval(n.returnVal, env)
     if val.isError(): return val
-    return Object(kind: okReturnVal, returnVal: val)
+    return PObject(kind: okReturnVal, returnVal: val)
   of nkLetStatement:
     let val = eval(n.letVal, env)
     if val.isError(): return val
@@ -70,7 +70,7 @@ proc eval(n: PNode, env: Environment): Object =
   of nkFunctionLit:
     let params = n.fnParameters
     let body = n.fnBody
-    return Object(kind: okFunction, fnParameters: params, fnBody: body, fnEnv: env)
+    return PObject(kind: okFunction, fnParameters: params, fnBody: body, fnEnv: env)
   of nkCallExpression:
     let function = eval(n.callExpFunction, env)
     if function.isError():
@@ -80,13 +80,13 @@ proc eval(n: PNode, env: Environment): Object =
       return args[0]
     return applyFunction(function, args)
   of nkStringLit:
-    return Object(kind: okString, stringVal: n.stringVal)
+    return PObject(kind: okString, stringVal: n.stringVal)
   of nkNull:
     return nullObj
 
   return nil
 
-proc evalIdent(n: PNode, env: Environment): Object =
+proc evalIdent(n: PNode, env: Environment): PObject =
   let (val, ok) = env.getVal(n.identVal)
   if ok:
     return val
@@ -94,7 +94,7 @@ proc evalIdent(n: PNode, env: Environment): Object =
     return builtins[n.identVal]
   return newError("identifier not found: " & n.identVal)
 
-proc evalProgram(program: PNode, env: Environment): Object =
+proc evalProgram(program: PNode, env: Environment): PObject =
   for stmt in program.statements:
     result = eval(stmt, env)
     if result != nil:
@@ -107,7 +107,7 @@ proc evalProgram(program: PNode, env: Environment): Object =
         discard
   return result
 
-proc evalPrefixExpression(op: string, right: Object): Object =
+proc evalPrefixExpression(op: string, right: PObject): PObject =
   case op
   of "!":
     return evalBangopExpression(right)
@@ -116,12 +116,12 @@ proc evalPrefixExpression(op: string, right: Object): Object =
   else:
     return newError("unknown operator: $1$2" % [op, right.inspectType()])
 
-proc nativeBoolToBooleanObject(input: bool): Object =
+proc nativeBoolToBooleanObject(input: bool): PObject =
   if input:
     return trueObj
   return falseObj
 
-proc evalBangopExpression(right: Object): Object =
+proc evalBangopExpression(right: PObject): PObject =
   case right.kind
   of okBool:
     if right.boolVal:
@@ -133,14 +133,14 @@ proc evalBangopExpression(right: Object): Object =
   else:
     return falseObj
 
-proc evalMinusopExpression(right: Object): Object =
+proc evalMinusopExpression(right: PObject): PObject =
   case right.kind
   of okInteger:
-    return Object(kind: okInteger, intVal: -(right.intVal))
+    return PObject(kind: okInteger, intVal: -(right.intVal))
   else:
     return newError("unknown operator: -$1" % [right.inspectType()])
 
-proc evalInfixExpression(op: string, left: Object, right: Object): Object =
+proc evalInfixExpression(op: string, left: PObject, right: PObject): PObject =
   if left.kind == okInteger and right.kind == okInteger:
     return evalIntegerInfixExpression(op, left, right)
   elif left.kind == okString and right.kind == okString:
@@ -158,18 +158,18 @@ proc evalInfixExpression(op: string, left: Object, right: Object): Object =
     return newError("type mismatch: $1 $2 $3" %
         [left.inspectType(), op, right.inspectType()])
 
-proc evalIntegerInfixExpression(op: string, left: Object, right: Object): Object =
+proc evalIntegerInfixExpression(op: string, left: PObject, right: PObject): PObject =
   let leftVal = left.intVal
   let rightVal = right.intVal
   case op
   of "+":
-    return Object(kind: okInteger, intVal: leftVal + rightVal)
+    return PObject(kind: okInteger, intVal: leftVal + rightVal)
   of "-":
-    return Object(kind: okInteger, intVal: leftVal - rightVal)
+    return PObject(kind: okInteger, intVal: leftVal - rightVal)
   of "*":
-    return Object(kind: okInteger, intVal: leftVal * rightVal)
+    return PObject(kind: okInteger, intVal: leftVal * rightVal)
   of "/":
-    return Object(kind: okInteger, intVal: leftVal div rightVal)
+    return PObject(kind: okInteger, intVal: leftVal div rightVal)
   of "<":
     return nativeBoolToBooleanObject(leftVal < rightVal)
   of ">":
@@ -182,7 +182,7 @@ proc evalIntegerInfixExpression(op: string, left: Object, right: Object): Object
     return newError("unknown operator: $1 $2 $3" %
         [left.inspectType(), op, right.inspectType()])
 
-proc evalIfExpression(n: PNode, env: Environment): Object =
+proc evalIfExpression(n: PNode, env: Environment): PObject =
   let condition = eval(n.ifExpCondition, env)
   if condition.isError(): return condition
   if isTruthy(condition):
@@ -192,7 +192,7 @@ proc evalIfExpression(n: PNode, env: Environment): Object =
   else:
     return nullObj
 
-proc isTruthy(o: Object): bool =
+proc isTruthy(o: PObject): bool =
   case o.kind
   of okNull:
     return false
@@ -201,7 +201,7 @@ proc isTruthy(o: Object): bool =
   else:
     return true
 
-proc evalBlockStatement(blk: seq[PNode], env: Environment): Object =
+proc evalBlockStatement(blk: seq[PNode], env: Environment): PObject =
   for stmt in blk:
     result = eval(stmt, env)
     if result != nil:
@@ -209,13 +209,13 @@ proc evalBlockStatement(blk: seq[PNode], env: Environment): Object =
         return result
   return result
 
-proc newError(errMsg: string): Object =
-  return Object(kind: okError, errorVal: errMsg)
+proc newError(errMsg: string): PObject =
+  return PObject(kind: okError, errorVal: errMsg)
 
-proc isError(o: Object): bool =
+proc isError(o: PObject): bool =
   return o.kind == okError
 
-proc evalExpressions(exps: seq[PNode], env: Environment): seq[Object] =
+proc evalExpressions(exps: seq[PNode], env: Environment): seq[PObject] =
   for e in exps:
     let evaluated = eval(e, env)
     if evaluated.isError():
@@ -224,7 +224,7 @@ proc evalExpressions(exps: seq[PNode], env: Environment): seq[Object] =
     result.add(evaluated)
   return result
 
-proc applyFunction(fn: Object, args: seq[Object]): Object =
+proc applyFunction(fn: PObject, args: seq[PObject]): PObject =
   case fn.kind
   of okFunction:
     let extendedEnv = extendFunctionEnv(fn, args)
@@ -235,25 +235,25 @@ proc applyFunction(fn: Object, args: seq[Object]): Object =
   else:
     return newError("not a function: " & fn.inspectType())
 
-proc extendFunctionEnv(fn: Object, args: seq[Object]): Environment =
+proc extendFunctionEnv(fn: PObject, args: seq[PObject]): Environment =
   let env = newEnclosedEnvironment(fn.fnEnv)
   for paramIdx, param in fn.fnParameters:
     env.setVal(param.identVal, args[paramIdx])
   return env
 
-proc unwrapReturnValue(obj: Object): Object =
+proc unwrapReturnValue(obj: PObject): PObject =
   if obj.kind == okReturnVal:
     return obj.returnVal
   return obj
 
-proc evalStringInfixExpression(op: string, left: Object, right: Object): Object =
+proc evalStringInfixExpression(op: string, left: PObject, right: PObject): PObject =
   case op
   of "+":
-    return Object(kind: okString, stringVal: left.stringVal & right.stringVal)
+    return PObject(kind: okString, stringVal: left.stringVal & right.stringVal)
   of "==":
-    return Object(kind: okBool, boolVal: left.stringVal == right.stringVal)
+    return PObject(kind: okBool, boolVal: left.stringVal == right.stringVal)
   of "!=":
-    return Object(kind: okBool, boolVal: left.stringVal != right.stringVal)
+    return PObject(kind: okBool, boolVal: left.stringVal != right.stringVal)
   else:
     return newError("unknown operator: $1 $2 $3" %
         [left.inspectType(), op, right.inspectType()])
@@ -261,11 +261,11 @@ proc evalStringInfixExpression(op: string, left: Object, right: Object): Object 
 
 # builtins
 
-proc builtinLen(args: varargs[Object]): Object =
+proc builtinLen(args: varargs[PObject]): PObject =
   if args.len != 1:
     return newError("wrong number of arguments. got=$1, want=1" % $args.len)
   case args[0].kind
   of okString:
-    return Object(kind: okInteger, intVal: args[0].stringVal.len)
+    return PObject(kind: okInteger, intVal: args[0].stringVal.len)
   else:
     return newError("argument to `len` not supported, got " & args[0].inspectType())

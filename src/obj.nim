@@ -14,17 +14,16 @@ type
     okBuiltin,
 
 type
+  BuiltinFunction = proc(args: varargs[PObject]): PObject
 
-  BuiltinFunction = proc(args: varargs[Object]): Object
-
-  Object* = ref object
+  PObject* = ref object
     case kind*: ObjectKind
     of okInteger:
       intVal*: int
     of okBool:
       boolVal*: bool
     of okReturnVal:
-      returnVal*: Object
+      returnVal*: PObject
     of okError:
       errorVal*: string
     of okFunction:
@@ -39,11 +38,11 @@ type
       discard
 
   Environment* = ref object
-    store: TableRef[string, Object]
+    store: TableRef[string, PObject]
     outer: Environment
 
 
-proc inspectValue*(o: Object): string =
+proc inspectValue*(o: PObject): string =
   case o.kind:
   of okInteger:
     result = $o.intVal
@@ -70,7 +69,7 @@ proc inspectValue*(o: Object): string =
   of okNull:
     result = "null"
 
-proc inspectType*(o: Object): string =
+proc inspectType*(o: PObject): string =
   case o.kind:
   of okInteger:
     result = "INTEGER"
@@ -90,21 +89,21 @@ proc inspectType*(o: Object): string =
     result = "NULL"
 
 proc newEnvironment*(): Environment =
-  return Environment(store: newTable[string, Object](), outer: nil)
+  return Environment(store: newTable[string, PObject](), outer: nil)
 
 proc newEnclosedEnvironment*(outer: Environment): Environment =
   var env = newEnvironment()
   env.outer = outer
   return env
 
-proc getVal*(e: Environment, name: string): (Object, bool) =
+proc getVal*(e: Environment, name: string): (PObject, bool) =
   if e.store.hasKey(name):
     return (e.store[name], true)
   else:
     if e.outer != nil:
       return e.outer.getVal(name)
-  return (Object(kind: okNull), false)
+  return (PObject(kind: okNull), false)
 
-proc setVal*(e: Environment, name: string, val: Object): Object {.discardable.} =
+proc setVal*(e: Environment, name: string, val: PObject): PObject {.discardable.} =
   e.store[name] = val
   return val
