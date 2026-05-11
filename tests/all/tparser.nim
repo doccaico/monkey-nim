@@ -1,4 +1,4 @@
-import strformat, macros
+import std/[strformat, macros]
 
 import ../../src/[ast, lexer, parser]
 from ./utils import EQ, TRUE, errInfo

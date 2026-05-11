@@ -13,7 +13,7 @@ var precedences = {
     tkMinus:    Sum,
     tkSlash:    Product,
     tkAsterisk: Product,
-    tkLparen:   CALL,
+    tkLparen:   Call,
 }.toTable
 
 
@@ -55,7 +55,7 @@ proc curTokenIs(p: Parser, t: TokType): bool
 proc peekTokenIs(p: Parser, t: TokType): bool
 proc peekError(p: var Parser, t: TokType)
 proc registerPrefix(p: var Parser, tokType: TokType, fn: prefixParseFn) {.inline.}
-proc registerInfix(p: var Parser, tokType: TokType, fn: infixParseFn)
+proc registerInfix(p: var Parser, tokType: TokType, fn: infixParseFn) {.inline.}
 proc noPrefixParseFnError(p: var Parser, t: TokType)
 proc curPrecedence(p: Parser): Precedence
 proc peekPrecedence(p: Parser): Precedence
