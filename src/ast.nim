@@ -6,12 +6,12 @@ import strutils
 type
   Precedence* = enum
     Lowest,
-    Equals,  # ==
-    LessGreater,      # > or <
-    Sum,     # +
-    Product, # *
-    Prefix,  # -X or !X
-    Call     # myFunction(X)
+    Equals,        # ==
+    LessGreater,   # > or <
+    Sum,           # +
+    Product,       # *
+    Prefix,        # -X or !X
+    Call           # myFunction(X)
 
 type
   TNodeKind* = enum

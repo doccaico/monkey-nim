@@ -29,7 +29,7 @@ type
     of okFunction:
       fnParameters*: seq[PNode]
       fnBody*: PNode
-      fnEnv*: Environment
+      fnEnv*: PEnvironment
     of okString:
       stringVal*: string
     of okBuiltin:
@@ -37,9 +37,9 @@ type
     of okNull:
       discard
 
-  Environment* = ref object
+  PEnvironment* = ref object
     store: TableRef[string, PObject]
-    outer: Environment
+    outer: PEnvironment
 
 
 proc inspectValue*(o: PObject): string =
@@ -88,22 +88,21 @@ proc inspectType*(o: PObject): string =
   of okNull:
     result = "NULL"
 
-proc newEnvironment*(): Environment =
-  return Environment(store: newTable[string, PObject](), outer: nil)
+proc newEnvironment*(): PEnvironment =
+  result = PEnvironment(store: newTable[string, PObject](), outer: nil)
 
-proc newEnclosedEnvironment*(outer: Environment): Environment =
-  var env = newEnvironment()
-  env.outer = outer
-  return env
+proc newEnclosedEnvironment*(outer: PEnvironment): PEnvironment =
+  result = newEnvironment()
+  result.outer = outer
 
-proc getVal*(e: Environment, name: string): (PObject, bool) =
+proc getVal*(e: PEnvironment, name: string): (PObject, bool) =
   if e.store.hasKey(name):
     return (e.store[name], true)
   else:
     if e.outer != nil:
       return e.outer.getVal(name)
-  return (PObject(kind: okNull), false)
+  result = (PObject(kind: okNull), false)
 
-proc setVal*(e: Environment, name: string, val: PObject): PObject {.discardable.} =
+proc setVal*(e: PEnvironment, name: string, val: PObject): PObject {.discardable.} =
   e.store[name] = val
-  return val
+  result = val

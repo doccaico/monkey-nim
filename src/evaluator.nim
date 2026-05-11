@@ -2,23 +2,23 @@ import ./ast, ./obj
 
 import strutils, tables
 
-proc eval*(n: PNode, env: Environment): PObject
+proc eval*(n: PNode, env: PEnvironment): PObject
 proc evalBangopExpression(right: PObject): PObject
 proc evalPrefixExpression(op: string, right: PObject): PObject
 proc nativeBoolToBooleanObject(input: bool): PObject
 proc evalMinusopExpression(right: PObject): PObject
 proc evalInfixExpression(op: string, left: PObject, right: PObject): PObject
 proc evalIntegerInfixExpression(op: string, left: PObject, right: PObject): PObject
-proc evalIfExpression(n: PNode, env: Environment): PObject
+proc evalIfExpression(n: PNode, env: PEnvironment): PObject
 proc isTruthy(o: PObject): bool
-proc evalBlockStatement(blk: seq[PNode], env: Environment): PObject
-proc evalProgram(program: PNode, env: Environment): PObject
+proc evalBlockStatement(blk: seq[PNode], env: PEnvironment): PObject
+proc evalProgram(program: PNode, env: PEnvironment): PObject
 proc newError*(errMsg: string): PObject
 proc isError(o: PObject): bool
-proc evalIdent(n: PNode, env: Environment): PObject
-proc evalExpressions(exps: seq[PNode], env: Environment): seq[PObject]
+proc evalIdent(n: PNode, env: PEnvironment): PObject
+proc evalExpressions(exps: seq[PNode], env: PEnvironment): seq[PObject]
 proc applyFunction(fn: PObject, args: seq[PObject]): PObject
-proc extendFunctionEnv(fn: PObject, args: seq[PObject]): Environment
+proc extendFunctionEnv(fn: PObject, args: seq[PObject]): PEnvironment
 proc unwrapReturnValue(obj: PObject): PObject
 proc evalStringInfixExpression(op: string, left: PObject, right: PObject): PObject
 
@@ -33,7 +33,7 @@ let
   nullObj* = PObject(kind: okNull)
 
 
-proc eval(n: PNode, env: Environment): PObject =
+proc eval(n: PNode, env: PEnvironment): PObject =
   case n.kind
   of nkProgram:
     return evalProgram(n, env)
@@ -86,7 +86,7 @@ proc eval(n: PNode, env: Environment): PObject =
 
   return nil
 
-proc evalIdent(n: PNode, env: Environment): PObject =
+proc evalIdent(n: PNode, env: PEnvironment): PObject =
   let (val, ok) = env.getVal(n.identVal)
   if ok:
     return val
@@ -94,7 +94,7 @@ proc evalIdent(n: PNode, env: Environment): PObject =
     return builtins[n.identVal]
   return newError("identifier not found: " & n.identVal)
 
-proc evalProgram(program: PNode, env: Environment): PObject =
+proc evalProgram(program: PNode, env: PEnvironment): PObject =
   for stmt in program.statements:
     result = eval(stmt, env)
     if result != nil:
@@ -182,7 +182,7 @@ proc evalIntegerInfixExpression(op: string, left: PObject, right: PObject): PObj
     return newError("unknown operator: $1 $2 $3" %
         [left.inspectType(), op, right.inspectType()])
 
-proc evalIfExpression(n: PNode, env: Environment): PObject =
+proc evalIfExpression(n: PNode, env: PEnvironment): PObject =
   let condition = eval(n.ifExpCondition, env)
   if condition.isError(): return condition
   if isTruthy(condition):
@@ -201,7 +201,7 @@ proc isTruthy(o: PObject): bool =
   else:
     return true
 
-proc evalBlockStatement(blk: seq[PNode], env: Environment): PObject =
+proc evalBlockStatement(blk: seq[PNode], env: PEnvironment): PObject =
   for stmt in blk:
     result = eval(stmt, env)
     if result != nil:
@@ -215,7 +215,7 @@ proc newError(errMsg: string): PObject =
 proc isError(o: PObject): bool =
   return o.kind == okError
 
-proc evalExpressions(exps: seq[PNode], env: Environment): seq[PObject] =
+proc evalExpressions(exps: seq[PNode], env: PEnvironment): seq[PObject] =
   for e in exps:
     let evaluated = eval(e, env)
     if evaluated.isError():
@@ -235,7 +235,7 @@ proc applyFunction(fn: PObject, args: seq[PObject]): PObject =
   else:
     return newError("not a function: " & fn.inspectType())
 
-proc extendFunctionEnv(fn: PObject, args: seq[PObject]): Environment =
+proc extendFunctionEnv(fn: PObject, args: seq[PObject]): PEnvironment =
   let env = newEnclosedEnvironment(fn.fnEnv)
   for paramIdx, param in fn.fnParameters:
     env.setVal(param.identVal, args[paramIdx])
