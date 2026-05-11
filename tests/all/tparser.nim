@@ -1,5 +1,5 @@
 import strformat, macros
-import ../src/[ast, lexer, parser]
+import ../../src/[ast, lexer, parser]
 from ./utils import EQ, TRUE, errInfo
 
 # helper

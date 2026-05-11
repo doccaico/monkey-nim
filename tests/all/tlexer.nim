@@ -1,4 +1,4 @@
-import ../src/[token, lexer]
+import ../../src/[token, lexer]
 import ./utils
 
 let input = """let five = 5;

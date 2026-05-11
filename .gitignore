@@ -1,6 +1,3 @@
-*
-!*/
-!*.*
-
 nimcache/
 testresults/
+*.exe

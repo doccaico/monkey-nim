@@ -1,5 +1,5 @@
 import strformat, macros
-import ../src/[ast, lexer, parser, obj, evaluator]
+import ../../src/[ast, lexer, parser, obj, evaluator]
 from ./utils import EQ, TRUE, errInfo
 
 proc testEval(input: string): Object =

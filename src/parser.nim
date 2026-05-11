@@ -89,19 +89,13 @@ proc initParser(L: Lexer): Parser =
 
 proc parseStringLit(p: var Parser): PNode =
   new(result)
-  result.kind = nkStringLit
-  result.tok = p.curToken
-  result.stringVal = p.curToken.literal
+  result = PNode(kind: nkStringLit, tok: p.curToken, stringVal: p.curToken.literal)
 
 proc parseCallExpression(p: var Parser, function: PNode): PNode =
   when defined(trace): TRACE("parseCallExpression")
   new(result)
-  result.kind = nkCallExpression
-  result.tok = p.curToken
-  result.callExpFunction = function
-
+  result = PNode(kind: nkCallExpression, tok: p.curToken, callExpFunction: function)
   result.callExpArguments = p.parseCallArguments()
-  return result
 
 proc parseCallArguments(p: var Parser): seq[PNode] =
   when defined(trace): TRACE("parseCallArguments")
@@ -119,8 +113,6 @@ proc parseCallArguments(p: var Parser): seq[PNode] =
 
   if not p.expectPeek(tkRparen): return @[]
 
-  return result
-
 proc parseFunctionParameters(p: var Parser): seq[PNode] =
   when defined(trace): TRACE("parseFunctionParameters")
   if p.peekTokenIs(tkRparen):
@@ -131,39 +123,34 @@ proc parseFunctionParameters(p: var Parser): seq[PNode] =
 
   var n: PNode
   new(n)
-  n.kind = nkIdent
-  n.tok = p.curToken
-  n.identVal = p.curToken.literal
+  n = PNode(kind: nkIdent, tok: p.curToken, identVal: p.curToken.literal)
+  # n.kind = nkIdent
+  # n.tok = p.curToken
+  # n.identVal = p.curToken.literal
   result.add(n)
 
   while p.peekTokenIs(tkComma):
     p.nextToken()
     p.nextToken()
 
-    n.kind = nkIdent
-    n.tok = p.curToken
-    n.identVal = p.curToken.literal
-    result.add(n)
+    var ident: PNode
+    new(ident)
+    ident = PNode(kind: nkIdent, tok: p.curToken, identVal: p.curToken.literal)
+    # ident.kind = nkIdent
+    # ident.tok = p.curToken
+    # ident.identVal = p.curToken.literal
+    result.add(ident)
 
   if not p.expectPeek(tkRparen): return @[]
-
-  return result
 
 proc parseFunctionLit(p: var Parser): PNode =
   when defined(trace): TRACE("parseFunctionLit")
   new(result)
-  result.kind = nkFunctionLit
-  result.tok = p.curToken
-
+  result = PNode(kind: nkFunctionLit, tok: p.curToken)
   if not p.expectPeek(tkLparen): return nil
-
   result.fnParameters = p.parseFunctionParameters()
-
   if not p.expectPeek(tkLbrace): return nil
-
   result.fnBody = p.parseBlockStatement()
-
-  return result
 
 proc parseProgram(p: var Parser): PNode =
   when defined(trace): TRACE("parseProgram")
@@ -193,40 +180,27 @@ proc parseStatement(p: var Parser): PNode =
 proc parseExpressionStatement(p: var Parser): PNode =
   when defined(trace): TRACE("parseExpressionStatement")
   new(result)
-  result.kind = nkExpressionStatement
-  result.tok = p.curToken
-
-  result.expression = p.parseExpression(Lowest)
-
-  if p.peekTokenIs(tkSemiColon):
-    p.nextToken()
+  result = PNode(kind: nkExpressionStatement, tok: p.curToken, expression: p.parseExpression(Lowest))
+  if p.peekTokenIs(tkSemiColon): p.nextToken()
 
 proc parseReturnStatement(p: var Parser): PNode =
   when defined(trace): TRACE("parseReturnStatement")
   new(result)
-  result.kind = nkReturnStatement
-  result.tok = p.curToken
-
+  result = PNode(kind: nkReturnStatement, tok: p.curToken)
   p.nextToken()
   result.returnVal = p.parseExpression(Lowest)
-
   if p.peekTokenIs(tkSemiColon): p.nextToken()
-
-  return result
 
 proc parseLetStatement(p: var Parser): PNode =
   when defined(trace): TRACE("parseLetStatement")
   new(result)
-  result.kind = nkLetStatement
-  result.tok = p.curToken
+  result = PNode(kind: nkLetStatement, tok: p.curToken)
 
   if not p.expectPeek(tkIdent): return nil
 
   var n: PNode
   new(n)
-  n.kind = nkIdent
-  n.tok = p.curToken
-  n.identVal = p.curToken.literal
+  n = PNode(kind: nkIdent, tok: p.curToken, identVal: p.curToken.literal)
   result.letIdent = n
 
   if not p.expectPeek(tkAssign): return nil
@@ -236,21 +210,15 @@ proc parseLetStatement(p: var Parser): PNode =
 
   if p.peekTokenIs(tkSemiColon): p.nextToken()
 
-  return result
-
 proc parseIdent(p: var Parser): PNode =
   when defined(trace): TRACE("parseIdent")
   new(result)
-  result.kind = nkIdent
-  result.tok = p.curToken
-  result.identVal = p.curToken.literal
+  result = PNode(kind: nkIdent, tok: p.curToken, identVal: p.curToken.literal)
 
 proc parseBool(p: var Parser): PNode =
   when defined(trace): TRACE("parseBool")
   new(result)
-  result.kind = nkBoolLit
-  result.tok = p.curToken
-  result.boolVal = p.curTokenIs(tkTrue)
+  result = PNode(kind: nkBoolLit, tok: p.curToken, boolVal: p.curTokenIs(tkTrue))
 
 proc parseIntLit(p: var Parser): PNode =
   when defined(trace): TRACE("parseIntLit")
@@ -260,43 +228,34 @@ proc parseIntLit(p: var Parser): PNode =
   except ValueError:
     p.errors.add("invalid integer: " & p.curToken.literal)
   new(result)
-  result.kind = nkIntLit
-  result.tok = p.curToken
-  result.intVal = inum
+  result = PNode(kind: nkIntLit, tok: p.curToken, intVal: inum)
 
 proc parsePrefixExpression(p: var Parser): PNode =
   when defined(trace): TRACE("parsePrefixExpression")
   new(result)
-  result.kind = nkPrefixExpression
-  result.tok = p.curToken
-  result.preExpOpVal = p.curToken.literal
+  result = PNode(kind: nkPrefixExpression, tok: p.curToken, preExpOpVal: p.curToken.literal)
   p.nextToken()
   result.preExpRight = p.parseExpression(Prefix)
 
 proc parseInfixExpression(p: var Parser, left: PNode): PNode =
   when defined(trace): TRACE("parseInfixExpression")
   new(result)
-  result.kind = nkInfixExpression
-  result.tok = p.curToken
-  result.inExpOpVal = p.curToken.literal
-
+  result = PNode(kind: nkInfixExpression, tok: p.curToken, inExpOpVal: p.curToken.literal, inexpLeft: left)
   let precedence = p.curPrecedence()
   p.nextToken()
   result.inExpRight = p.parseExpression(precedence)
-  return result
 
 proc parseGroupedExpression(p: var Parser): PNode =
   when defined(trace): TRACE("parseGroupedExpression")
   p.nextToken()
+  new(result)
   result = p.parseExpression(LOWEST)
   if not p.expectPeek(tkRparen): return nil
-  return result
 
 proc parseIfExpression(p: var Parser): PNode =
   when defined(trace): TRACE("parseIfExpression")
   new(result)
-  result.kind = nkIfExpression
-  result.tok = p.curToken
+  result = PNode(kind: nkIfExpression, tok: p.curToken)
 
   if not p.expectPeek(tkLparen): return nil
 
@@ -313,21 +272,16 @@ proc parseIfExpression(p: var Parser): PNode =
     if not p.expectPeek(tkLbrace): return nil
     result.ifExpAlternative = p.parseBlockStatement()
 
-  return result
-
 proc parseBlockStatement(p: var Parser): PNode =
   when defined(trace): TRACE("parseBlockStatement")
   new(result)
-  result.kind = nkBlockStatement
-  result.tok = p.curToken
-
+  result = PNode(kind: nkBlockStatement, tok: p.curToken)
   p.nextToken()
   while not p.curTokenIs(tkRbrace):
     let stmt = p.parseStatement()
     if stmt != nil:
       result.blockStatements.add(stmt)
     p.nextToken()
-  return result
 
 proc parseExpression(p: var Parser, precedence: Precedence): PNode =
   when defined(trace): TRACE("parseExpression")

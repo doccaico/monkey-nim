@@ -80,10 +80,7 @@ proc eval(n: PNode, env: Environment): Object =
       return args[0]
     return applyFunction(function, args)
   of nkStringLit:
-    new(result)
-    result.kind = okString
-    result.stringVal = n.stringVal
-    return result
+    return Object(kind: okString, stringVal: n.stringVal)
   of nkNull:
     return nullObj
 
